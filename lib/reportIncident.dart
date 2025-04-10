@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:humanchain/inputField.dart';
+import 'package:hive/hive.dart';
+import 'package:humanchain/incident_model.dart';
 
 class Reportincident extends StatefulWidget {
   const Reportincident({super.key});
@@ -28,7 +30,37 @@ class _ReportincidentState extends State<Reportincident> {
       });
     }
   }
-  void save(){}
+  void save() async {
+  if (_titleController.text.isEmpty || _descriptionController.text.isEmpty || _selectedDate == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Please fill all fields and select a date")),
+    );
+    return;
+  }
+
+  final newIncident = IncidentModel(
+    title: _titleController.text.trim(),
+    description: _descriptionController.text.trim(),
+    severity: _selectedSeverity,
+    date: _selectedDate!,
+
+  );
+
+  final box = await Hive.openBox<IncidentModel>('incident');
+  box.add(newIncident);
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text("Incident saved successfully")),
+  );
+
+  _titleController.clear();
+  _descriptionController.clear();
+  setState(() {
+    _selectedSeverity = 'Low';
+    _selectedDate = null;
+  });
+}
+
 Widget saveButton(BuildContext context){
   return Center(
     child:SizedBox(
